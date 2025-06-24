@@ -1,0 +1,205 @@
+{
+  "sequence": [
+    {
+      "index": 0,
+      "type": "Sketch",
+      "entity": "c9f1dbfb-9fae-4a52-b3a6-40dcc6704778"
+    },
+    {
+      "index": 1,
+      "type": "ExtrudeFeature",
+      "entity": "a1cf246d-c3e7-4a65-b987-99c6e9801f90"
+    }
+  ],
+  "entities": {
+    "c9f1dbfb-9fae-4a52-b3a6-40dcc6704778": {
+      "name": "Sketch 1",
+      "transform": {
+        "origin": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "z_axis": {
+          "x": 0.0,
+          "y": 0.0,
+          "z": 1.0
+        },
+        "x_axis": {
+          "x": 1.0,
+          "y": 0.0,
+          "z": 0.0
+        },
+        "y_axis": {
+          "x": 0.0,
+          "y": 1.0,
+          "z": 0.0
+        }
+      },
+      "profiles": {
+        "059fed61-d1a4-40f4-9df1-022c78090ce6": {
+          "loops": [
+            {
+              "is_outer": true,
+              "profile_curves": [
+                {
+                  "curve": "f536d46f-d90a-4758-8909-fb03eee1a137",
+                  "start_point": {
+                    "x": 36.7,
+                    "y": 6.1,
+                    "z": 0.0
+                  },
+                  "end_point": {
+                    "x": 36.7,
+                    "y": -6.1,
+                    "z": 0.0
+                  },
+                  "type": "Line3D"
+                },
+                {
+                  "curve": "e052a873-ef46-4095-ad8e-52bbef915d31",
+                  "start_point": {
+                    "x": -36.7,
+                    "y": 6.1,
+                    "z": 0.0
+                  },
+                  "end_point": {
+                    "x": 36.7,
+                    "y": 6.1,
+                    "z": 0.0
+                  },
+                  "type": "Line3D"
+                },
+                {
+                  "curve": "0c72715f-20b1-47ae-95fb-334cc6e73f83",
+                  "start_point": {
+                    "x": -36.7,
+                    "y": -6.1,
+                    "z": 0.0
+                  },
+                  "end_point": {
+                    "x": -36.7,
+                    "y": 6.1,
+                    "z": 0.0
+                  },
+                  "type": "Line3D"
+                },
+                {
+                  "curve": "48736338-6d44-40fd-9f35-7a64c568d78c",
+                  "start_point": {
+                    "x": 36.7,
+                    "y": -6.1,
+                    "z": 0.0
+                  },
+                  "end_point": {
+                    "x": -36.7,
+                    "y": -6.1,
+                    "z": 0.0
+                  },
+                  "type": "Line3D"
+                }
+              ]
+            },
+            {
+              "is_outer": true,
+              "profile_curves": [
+                {
+                  "curve": "fae851ac-4e18-48bd-bae3-4d0c7c643384",
+                  "center_point": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "radius": 1.5,
+                  "normal": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 1.0
+                  },
+                  "type": "Circle3D"
+                }
+              ]
+            },
+            {
+              "is_outer": true,
+              "profile_curves": [
+                {
+                  "curve": "5f8d6539-6991-4978-8e33-a6e6a8fce39a",
+                  "center_point": {
+                    "x": 24.5,
+                    "y": 0.0,
+                    "z": 0.0
+                  },
+                  "radius": 1.5,
+                  "normal": {
+                    "x": 0.0,
+                    "y": 0.0,
+                    "z": 1.0
+                  },
+                  "type": "Circle3D"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "parent": null,
+      "level": 0,
+      "template": {
+        "sketchgraph_file": "/home/jovyan/shares/SR008.fs2/data/sg_sketches/02430/02430236.json",
+        "extrude_operation": "NewBodyFeatureOperation",
+        "side": false,
+        "synth": false
+      }
+    },
+    "a1cf246d-c3e7-4a65-b987-99c6e9801f90": {
+      "name": "ExtrudeFeature 1",
+      "symmetric": false,
+      "reference_profiles": [
+        {
+          "parent": "c9f1dbfb-9fae-4a52-b3a6-40dcc6704778",
+          "id": "059fed61-d1a4-40f4-9df1-022c78090ce6"
+        }
+      ],
+      "operation": "NewBodyFeatureOperation",
+      "extent_type": "OneSideFeatureExtentType",
+      "extent_one": {
+        "distance": {
+          "type": "ModelParameter",
+          "value": 15.0,
+          "name": "none",
+          "role": "none"
+        },
+        "taper_angle": {
+          "type": "ModelParameter",
+          "value": 0.0,
+          "name": "none",
+          "role": "none"
+        },
+        "type": "DistanceExtentDefinition"
+      },
+      "extent_two": {
+        "distance": {
+          "type": "ModelParameter",
+          "value": 0.0,
+          "name": "none",
+          "role": "none"
+        },
+        "taper_angle": {
+          "type": "ModelParameter",
+          "value": 0.0,
+          "name": "none",
+          "role": "none"
+        },
+        "type": "DistanceExtentDefinition"
+      },
+      "start_extent": {
+        "type": "ProfilePlaneStartDefinition"
+      }
+    }
+  },
+  "max_height": 100.0,
+  "cadscript": false,
+  "identical": false,
+  "complexity": 8
+}
