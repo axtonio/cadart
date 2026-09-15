@@ -236,6 +236,17 @@ sync_repo_manifest() {
   repo sync -c -j8 --no-tags --fail-fast || repo sync -c -j8 --no-tags
 }
 
+sync_nested_nodes() {
+  [[ -f default.xml ]] || return 0
+  local extra=()
+  [[ "$LATEST" -eq 1 ]] && extra+=(--latest)
+  while IFS= read -r path; do
+    [[ -f "$path/default.xml" && -x "$path/sync.sh" ]] || continue
+    echo "==> nested $path/sync.sh"
+    (cd "$path" && ./sync.sh "${extra[@]+"${extra[@]}"}")
+  done < <(manifest_paths)
+}
+
 echo "==> $NAME"
 if git symbolic-ref -q HEAD >/dev/null; then
   git pull --ff-only
@@ -308,6 +319,8 @@ if [[ "$LATEST" -eq 1 && -f .gitmodules ]]; then
   echo
   echo "Working tree may be dirty: parents still pin old SHAs for leftover submodules."
 fi
+
+sync_nested_nodes
 
 echo
 echo "==> status"
