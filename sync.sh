@@ -225,13 +225,12 @@ bump_tree() {
 }
 
 sync_repo_manifest() {
-  local origin
   [[ -f default.xml ]] || return 0
   ensure_repo
-  origin="$(git remote get-url origin)"
   echo "==> repo sync ($NAME)"
   if [[ ! -d .repo ]]; then
-    repo init -u "$origin" -m default.xml \
+    # Manifest is this git repo. Use the local path so init does not re-fetch it.
+    repo init -u "$ROOT" -m default.xml -c \
       --repo-url=https://github.com/GerritCodeReview/git-repo
   fi
   repo sync -c -j8 --no-tags --fail-fast || repo sync -c -j8 --no-tags
