@@ -231,7 +231,8 @@ sync_repo_manifest() {
   origin="$(git remote get-url origin)"
   echo "==> repo sync ($NAME)"
   if [[ ! -d .repo ]]; then
-    repo init -u "$origin" -m default.xml
+    repo init -u "$origin" -m default.xml \
+      --repo-url=https://github.com/GerritCodeReview/git-repo
   fi
   repo sync -c -j8 --no-tags --fail-fast || repo sync -c -j8 --no-tags
 }
