@@ -9,3 +9,5 @@
 *.bbl
 *.toc
 *.blg
+.repo/
+/latexrun/
