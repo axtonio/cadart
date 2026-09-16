@@ -235,24 +235,42 @@ ancestor_repo_client() {
   return 1
 }
 
+manifest_remote() {
+  # Standalone clone: origin. Repo-managed checkout: remote "github", no origin.
+  local url
+  url="$(git config --get remote.origin.url 2>/dev/null || true)"
+  if [[ -z "$url" ]]; then
+    url="$(git config --get remote.github.url 2>/dev/null || true)"
+  fi
+  url="$(printf '%s' "$url" | sed -E 's#https://[^/@]+@#https://#')"
+  if [[ -n "$url" ]]; then
+    printf '%s\n' "$url"
+  else
+    printf '%s\n' "$ROOT"
+  fi
+}
+
 init_repo_client() {
   # Manifest is this git repo. Use the local path so init does not re-fetch it.
   # `repo` walks parents looking for .repo/repo/main.py, so a nested node
   # (Work/CoreAI, Education, …) must init outside the umbrella tree or it
   # reuses — and rewrites — Projects/.repo.
+  # Repo-managed working trees have no `origin`; init from remote.github URL.
   if [[ -f .repo/manifest.xml ]]; then
     return 0
   fi
+  local u
+  u="$(manifest_remote)"
   if ancestor_repo_client; then
     local tmp
     tmp="$(mktemp -d)"
-    (cd "$tmp" && repo init -u "$ROOT" -m default.xml -c \
+    (cd "$tmp" && repo init -u "$u" -m default.xml -c \
       --repo-url=https://github.com/GerritCodeReview/git-repo)
     rm -rf "$ROOT/.repo"
     mv "$tmp/.repo" "$ROOT/.repo"
     rm -rf "$tmp"
   else
-    repo init -u "$ROOT" -m default.xml -c \
+    repo init -u "$u" -m default.xml -c \
       --repo-url=https://github.com/GerritCodeReview/git-repo
   fi
 }
@@ -279,17 +297,21 @@ sync_nested_nodes() {
 }
 
 echo "==> $NAME"
-if git symbolic-ref -q HEAD >/dev/null; then
-  git pull --ff-only
-else
-  echo "detached HEAD; fetching and checking out origin default branch"
-  git fetch origin --quiet || true
-  if git rev-parse --verify origin/main >/dev/null 2>&1; then
-    git checkout -q -B main origin/main
-  elif git rev-parse --verify origin/master >/dev/null 2>&1; then
-    git checkout -q -B master origin/master
+if git remote get-url origin >/dev/null 2>&1; then
+  if git symbolic-ref -q HEAD >/dev/null; then
+    git pull --ff-only
+  else
+    echo "detached HEAD; fetching and checking out origin default branch"
+    git fetch origin --quiet || true
+    if git rev-parse --verify origin/main >/dev/null 2>&1; then
+      git checkout -q -B main origin/main
+    elif git rev-parse --verify origin/master >/dev/null 2>&1; then
+      git checkout -q -B master origin/master
+    fi
+    git pull --ff-only || true
   fi
-  git pull --ff-only || true
+else
+  echo "no origin (repo-managed checkout); skip git pull"
 fi
 
 if [[ "$PUSH" -eq 1 ]]; then
