@@ -224,26 +224,57 @@ bump_tree() {
   push_repo "$repo"
 }
 
+ancestor_repo_client() {
+  local d="$ROOT"
+  while [[ "$d" != "/" ]]; do
+    d="$(dirname "$d")"
+    if [[ -f "$d/.repo/repo/main.py" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+init_repo_client() {
+  # Manifest is this git repo. Use the local path so init does not re-fetch it.
+  # `repo` walks parents looking for .repo/repo/main.py, so a nested node
+  # (Work/CoreAI, Education, …) must init outside the umbrella tree or it
+  # reuses — and rewrites — Projects/.repo.
+  if [[ -f .repo/manifest.xml ]]; then
+    return 0
+  fi
+  if ancestor_repo_client; then
+    local tmp
+    tmp="$(mktemp -d)"
+    (cd "$tmp" && repo init -u "$ROOT" -m default.xml -c \
+      --repo-url=https://github.com/GerritCodeReview/git-repo)
+    rm -rf "$ROOT/.repo"
+    mv "$tmp/.repo" "$ROOT/.repo"
+    rm -rf "$tmp"
+  else
+    repo init -u "$ROOT" -m default.xml -c \
+      --repo-url=https://github.com/GerritCodeReview/git-repo
+  fi
+}
+
 sync_repo_manifest() {
   [[ -f default.xml ]] || return 0
   ensure_repo
   echo "==> repo sync ($NAME)"
-  if [[ ! -d .repo ]]; then
-    # Manifest is this git repo. Use the local path so init does not re-fetch it.
-    repo init -u "$ROOT" -m default.xml -c \
-      --repo-url=https://github.com/GerritCodeReview/git-repo
-  fi
+  init_repo_client
   repo sync -c -j8 --no-tags --fail-fast || repo sync -c -j8 --no-tags
 }
 
 sync_nested_nodes() {
   [[ -f default.xml ]] || return 0
-  local extra=()
-  [[ "$LATEST" -eq 1 ]] && extra+=(--latest)
   while IFS= read -r path; do
     [[ -f "$path/default.xml" && -x "$path/sync.sh" ]] || continue
     echo "==> nested $path/sync.sh"
-    (cd "$path" && ./sync.sh "${extra[@]+"${extra[@]}"}")
+    if [[ "$LATEST" -eq 1 ]]; then
+      (cd "$path" && ./sync.sh --latest)
+    else
+      (cd "$path" && ./sync.sh)
+    fi
   done < <(manifest_paths)
 }
 
