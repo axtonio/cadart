@@ -21,20 +21,16 @@ texlive-latex-extra
 
 Скопируйте проект в рабочую директорию вашего ПК, используя команду
 ```bash
-git clone git@github.com:pavel-collab/Bachelor-Thesis-Template.git
+git clone https://github.com/axtonio/cadart.git
+cd cadart
+./sync.sh
 ```
 
-Запустите скрипт, устанавливающий необходимые зависимости
+`latexrun` подтягивается через [Google repo](https://gerrit.googlesource.com/git-repo) ([`default.xml`](default.xml)), не через git submodule.
+
+Запустите скрипт, устанавливающий необходимые зависимости:
 ```bash
 sudo ./configure.sh
-```
-
-Мы используем утилиту `latexrun` для более информативных сообщений сборки. Для этого
-необходимо подгрузить его как git-овский submodule:
-
-```bash
-git submodule init
-git submodule update
 ```
 
 Для сборки проекта в корневом каталоге лежит Makefile.
