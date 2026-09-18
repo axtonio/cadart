@@ -1,27 +1,13 @@
 #!/usr/bin/env bash
 # Aggregator node: Google repo (default.xml), then nested aggregators.
-# Leftover git submodules (Sber) are only here if .gitmodules exists —
-# see sync-submodules.sh on Work.
 #
-#   ./sync.sh           pull + repo sync + nested aggregators
-#   ./sync.sh --latest  also fast-forward leftover submodules, if any
-#   ./sync.sh --push    CI: pin leftover submodules, if any
+#   ./sync.sh    pull + repo sync + nested aggregators
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$ROOT"
 NAME="$(basename "$ROOT")"
 PATH="${HOME}/.local/bin:${PATH}"
-
-LATEST=0
-PUSH=0
-for arg in "$@"; do
-  case "$arg" in
-    --latest) LATEST=1 ;;
-    --push) PUSH=1 ;;
-    *) echo "unknown argument: $arg" >&2; exit 2 ;;
-  esac
-done
 
 ensure_repo() {
   if command -v repo >/dev/null 2>&1; then
@@ -124,21 +110,11 @@ if [[ -f default.xml ]]; then
   repo sync -c -j8 --no-tags --fail-fast || repo sync -c -j8 --no-tags
 fi
 
-if [[ -f .gitmodules ]]; then
-  if [[ -x ./sync-submodules.sh ]]; then
-    ./sync-submodules.sh "$@"
-  else
-    echo "==> leftover git submodules"
-    git submodule sync --recursive
-    git submodule update --init --recursive || echo "WARN: some submodules failed to init"
-  fi
-fi
-
 if [[ -f default.xml ]]; then
   while IFS= read -r path; do
     [[ -f "$path/default.xml" && -x "$path/sync.sh" ]] || continue
     echo "==> nested $path/sync.sh"
-    (cd "$path" && ./sync.sh "$@")
+    (cd "$path" && ./sync.sh)
   done < <(manifest_paths)
 fi
 
