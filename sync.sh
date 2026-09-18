@@ -23,66 +23,19 @@ ensure_repo() {
   }
 }
 
-manifest_paths() {
-  python3 - <<'PY'
-import xml.etree.ElementTree as ET
-from pathlib import Path
-p = Path("default.xml")
-if not p.exists():
-    raise SystemExit(0)
-root = ET.parse(p).getroot()
-for el in root.findall("project"):
-    path = el.get("path") or el.get("name")
-    if path:
-        print(path)
-PY
-}
-
-ancestor_repo_client() {
-  local d="$ROOT"
-  while [[ "$d" != "/" ]]; do
-    d="$(dirname "$d")"
-    if [[ -f "$d/.repo/repo/main.py" ]]; then
-      return 0
-    fi
-  done
-  return 1
-}
-
-manifest_remote() {
-  local url
-  url="$(git config --get remote.origin.url 2>/dev/null || true)"
-  if [[ -z "$url" ]]; then
-    url="$(git config --get remote.github.url 2>/dev/null || true)"
-  fi
-  url="$(printf '%s' "$url" | sed -E 's#https://[^/@]+@#https://#')"
-  if [[ -n "$url" ]]; then
-    printf '%s\n' "$url"
-  else
-    printf '%s\n' "$ROOT"
-  fi
-}
-
 init_repo_client() {
-  # Nested aggregators sit under a parent .repo; init in a tempdir so `repo`
-  # does not walk up and rewrite the umbrella client.
-  if [[ -f .repo/manifest.xml ]]; then
-    return 0
-  fi
-  local u
-  u="$(manifest_remote)"
-  if ancestor_repo_client; then
-    local tmp
-    tmp="$(mktemp -d)"
-    (cd "$tmp" && repo init -u "$u" -m default.xml -c \
-      --repo-url=https://github.com/GerritCodeReview/git-repo)
-    rm -rf "$ROOT/.repo"
-    mv "$tmp/.repo" "$ROOT/.repo"
-    rm -rf "$tmp"
-  else
-    repo init -u "$u" -m default.xml -c \
-      --repo-url=https://github.com/GerritCodeReview/git-repo
-  fi
+  # Tempdir so `repo` does not walk into a parent client. Never `rm -rf .repo`.
+  [[ -f .repo/manifest.xml ]] && return 0
+  local tmp name
+  tmp="$(mktemp -d)"
+  (cd "$tmp" && repo init -u "$ROOT" -m default.xml -c \
+    --repo-url=https://github.com/GerritCodeReview/git-repo)
+  mkdir -p .repo
+  for name in repo manifests manifests.git manifest.xml; do
+    rm -rf ".repo/$name"
+    [[ -e "$tmp/.repo/$name" ]] && mv "$tmp/.repo/$name" ".repo/$name"
+  done
+  rm -rf "$tmp"
 }
 
 echo "==> $NAME"
@@ -108,14 +61,16 @@ if [[ -f default.xml ]]; then
   echo "==> repo sync ($NAME)"
   init_repo_client
   repo sync -c -j8 --no-tags --fail-fast || repo sync -c -j8 --no-tags
-fi
-
-if [[ -f default.xml ]]; then
+  repo forall -c '
+    git symbolic-ref -q HEAD >/dev/null && exit 0
+    git rev-parse --verify -q "$REPO_REMOTE/$REPO_RREV" >/dev/null || exit 0
+    git checkout -q -B "$REPO_RREV" "$REPO_REMOTE/$REPO_RREV"
+  '
   while IFS= read -r path; do
     [[ -f "$path/default.xml" && -x "$path/sync.sh" ]] || continue
     echo "==> nested $path/sync.sh"
     (cd "$path" && ./sync.sh)
-  done < <(manifest_paths)
+  done < <(repo list --path-only)
 fi
 
 echo
