@@ -28,7 +28,9 @@ init_repo_client() {
   [[ -f .repo/manifest.xml ]] && return 0
   local tmp name
   tmp="$(mktemp -d)"
-  (cd "$tmp" && repo init -u "$ROOT" -m default.xml -c \
+  # --no-clone-bundle: repo's urllib clone.bundle applies git insteadOf and
+  # cannot parse https://user:token@host (InvalidURL nonnumeric port).
+  (cd "$tmp" && repo init -u "$ROOT" -m default.xml -c --no-clone-bundle \
     --repo-url=https://github.com/GerritCodeReview/git-repo)
   mkdir -p .repo
   for name in repo manifests manifests.git manifest.xml; do
