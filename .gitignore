@@ -11,3 +11,6 @@
 *.blg
 .repo/
 /latexrun/
+
+# macOS Finder metadata
+.DS_Store
